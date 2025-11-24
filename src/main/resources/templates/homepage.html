@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Document</title>
+</head>
+<body>
+
+    <h1>Homepage</h1>
+    <p>Welcome to our page</p>
+
+    <a th:href="@{/admin}" >Secret Admin Page ONLY USERS CAN ACCESS THIS </a>
+    <br>
+    <a th:href="@{/user}" >Secret User Page ONLY USERS CAN ACCESS THIS </a>
+    <br>
+    <a th:href="@{/register}" >Register </a>
+<img src="/static/Bananas.jpg" alt="Banana collection">
+
+</body>
+</html>

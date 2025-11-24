@@ -1,0 +1,71 @@
+package org.henrikjavayh.springsecurity.debug;
+
+import org.henrikjavayh.springsecurity.user.CustomUser;
+import org.henrikjavayh.springsecurity.user.CustomUserRepository;
+import org.henrikjavayh.springsecurity.user.autthority.UserRole;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Set;
+
+@RestController
+@RequestMapping("/debug" )
+public class DebugRestController {
+
+    private final PasswordEncoder passwordEncoder;
+    private final CustomUserRepository customUserRepository;
+
+    @Autowired
+    public DebugRestController(PasswordEncoder passwordEncoder, CustomUserRepository customUserRepository) {
+        this.passwordEncoder = passwordEncoder;
+        this.customUserRepository = customUserRepository;
+    }
+
+    @GetMapping("/create-debug-admin" )
+    public ResponseEntity<String> createDebugAdmin() {
+
+        try {
+            customUserRepository.save(
+                    new CustomUser(
+                            "Frida",
+                            passwordEncoder.encode("321" ),
+                            true,
+                            true,
+                            true,
+                            true,
+                            Set.of(UserRole.ADMIN)
+
+                    )
+
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body("User was successfully created!" );
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists " + e.getLocalizedMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Something went wrong.. " + e.getLocalizedMessage());
+        } finally {
+            System.out.println("Creating debug app ended" );
+        }
+
+
+    }
+
+    @GetMapping
+    public ResponseEntity<String> testBcryptEncoding(
+            @RequestParam(value = "message" ) String message
+    ) {
+
+        String obfuscatedMessage = passwordEncoder.encode(message);
+
+        return ResponseEntity.ok().body("Message was: " + message + " and was hashed: " + obfuscatedMessage);
+
+
+    }
+}
