@@ -5,6 +5,8 @@ import jakarta.validation.Valid;
 import org.henrikjavayh.springsecurity.user.CustomUser;
 import org.henrikjavayh.springsecurity.user.CustomUserRepository;
 import org.henrikjavayh.springsecurity.user.autthority.UserRole;
+import org.henrikjavayh.springsecurity.user.dto.CustomUserCreationDTO;
+import org.henrikjavayh.springsecurity.user.mapper.CustomUserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,12 +23,23 @@ public class CustomViewController {
 
     private final CustomUserRepository customUserRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CustomUserMapper  customUserMapper;
 
     @Autowired
-    public CustomViewController(CustomUserRepository customUserRepository, PasswordEncoder passwordEncoder) {
+    public CustomViewController(CustomUserRepository customUserRepository, PasswordEncoder passwordEncoder, CustomUserMapper customUserMapper) {
         this.customUserRepository = customUserRepository;
         this.passwordEncoder = passwordEncoder;
+        this.customUserMapper = customUserMapper;
+    }
 
+    @GetMapping("/login")
+    public String loginPage() {
+        return "login";
+    }
+
+    @GetMapping("/logout")
+    public String logoutPage()  {
+        return "logout";
     }
 
     @GetMapping("/admin")
@@ -51,13 +64,15 @@ public class CustomViewController {
 
     @PostMapping("/register")
     public String registerUser(
-            @Valid CustomUser customUser, BindingResult bindingResult) {
+            @Valid CustomUserCreationDTO customUserCreationDTO, BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
             return "registerpage";
         }
 
-        customUser.setPassword(passwordEncoder.encode(customUser.getPassword()));
+        CustomUser customUser = customUserMapper.toEntity(customUserCreationDTO);
+
+        customUser.setPassword(customUser.getPassword(), passwordEncoder);
 
         customUser.setAccountNonExpired(true);
         customUser.setAccountNonLocked(true);

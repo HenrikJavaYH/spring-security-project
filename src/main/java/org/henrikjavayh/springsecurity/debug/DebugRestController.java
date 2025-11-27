@@ -1,5 +1,7 @@
 package org.henrikjavayh.springsecurity.debug;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.henrikjavayh.springsecurity.user.CustomUser;
 import org.henrikjavayh.springsecurity.user.CustomUserRepository;
 import org.henrikjavayh.springsecurity.user.autthority.UserRole;
@@ -26,6 +28,26 @@ public class DebugRestController {
     public DebugRestController(PasswordEncoder passwordEncoder, CustomUserRepository customUserRepository) {
         this.passwordEncoder = passwordEncoder;
         this.customUserRepository = customUserRepository;
+    }
+
+    @GetMapping("/session-attributes" )
+    public ResponseEntity <String> debugSessionAttributes (HttpServletRequest request) {
+        HttpSession session = request.getSession (false);
+        if (session == null) {
+            return ResponseEntity .ok("No session found." );
+        }
+        StringBuilder sb = new StringBuilder ();
+        sb.append("Session ID: " ).append(session.getId()).append("\n");
+        sb.append("Attributes: \n");
+        var names = session.getAttributeNames ();
+        while (names.hasMoreElements ()) {
+            String name = names.nextElement ();
+            Object value = session.getAttribute (name);
+            sb.append(" • ").append(name)
+                    .append(" = ").append(value)
+                    .append("\n");
+        }
+        return ResponseEntity .ok(sb.toString ());
     }
 
     @GetMapping("/create-debug-admin" )

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.henrikjavayh.springsecurity.user.autthority.UserRole;
 import org.springframework.boot.autoconfigure.web.WebProperties;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Set;
 import java.util.UUID;
@@ -19,22 +20,7 @@ public class CustomUser {
     private UUID id;
 
     @Column(unique = true, nullable = false)
-    @Size(min = 2, max = 25, message = "2-25 letters")
     private String username;
-
-    @Pattern(
-            regexp = "^" +
-                    "(?=.*[a-z])" + // at least one lowercase letter
-                    "(?=.*[A-Z])" + // at least one uppercase letter
-                    "(?=.*[0-9])" + // at least one digit
-                    "(?=.*[ @$!%*?&])" + // at least one special character
-                    ".+$", // one or more characters, until
-
-    message = "Password must contain at least one uppercase, one lowercase, one digit, and one special character"
-
-            )
-
-    @Size(max = 80, message = "Maximum length of password exceeded")
     private String password;
     private boolean isAccountNonExpired;
     private boolean isAccountNonLocked;
@@ -74,8 +60,8 @@ public class CustomUser {
         return password;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setPassword(String password, PasswordEncoder  passwordEncoder) {
+        this.password = passwordEncoder.encode(password);
     }
 
     public boolean isAccountNonExpired() {

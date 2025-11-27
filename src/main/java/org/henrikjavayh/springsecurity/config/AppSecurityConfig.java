@@ -3,6 +3,7 @@ package org.henrikjavayh.springsecurity.config;
 
 import org.henrikjavayh.springsecurity.user.autthority.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -15,15 +16,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+import java.util.concurrent.TimeUnit;
+
 @Configuration
 @EnableWebSecurity
 public class AppSecurityConfig {
 
-    @Autowired
-    private final PasswordEncoder passwordEncoder;
 
-    public AppSecurityConfig(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
+    private final UserDetailsService userDetailsService;
+    private final String rememberMeKey;
+
+    @Autowired
+    public AppSecurityConfig(UserDetailsService userDetailsService, @Value("{remember.me.key}") String rememberMeKey) {
+        this.userDetailsService = userDetailsService; //CustomUserDetailsService
+        this.rememberMeKey = rememberMeKey;
     }
 
     @Bean
@@ -40,7 +46,33 @@ public class AppSecurityConfig {
 
 
                 )
-                .formLogin(Customizer.withDefaults());
+                .formLogin(httpSecurityFormLoginConfigurer -> httpSecurityFormLoginConfigurer
+                        .loginPage("/login").permitAll()
+                        .loginProcessingUrl("/authenticate")
+                        .usernameParameter("username")
+                        .passwordParameter("password")
+                        .failureUrl("/login?error")
+                        .defaultSuccessUrl("/")//.false - default
+
+
+                )
+                .logout(logoutConfigurer -> logoutConfigurer
+                        .logoutUrl("/logout").permitAll()
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID", "remember-me")
+                        .logoutSuccessUrl("/login?logout")
+                )
+
+                .rememberMe(rememberMeConfigurer -> rememberMeConfigurer
+                        .key(rememberMeKey)
+                        .rememberMeParameter("remember-me")
+                        .tokenValiditySeconds((int) TimeUnit.DAYS.toSeconds(24))
+                        .userDetailsService(userDetailsService)
+
+
+                );
+
 
         return httpSecurity.build();
     }
