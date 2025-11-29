@@ -1,77 +1,56 @@
 package org.henrikjavayh.springsecurity.config;
 
 
+import org.henrikjavayh.springsecurity.security.jwt.JwtAuthenticationFilter;
 import org.henrikjavayh.springsecurity.user.autthority.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-
-import java.util.concurrent.TimeUnit;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class AppSecurityConfig {
 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    private final UserDetailsService userDetailsService;
-    private final String rememberMeKey;
 
     @Autowired
-    public AppSecurityConfig(UserDetailsService userDetailsService, @Value("{remember.me.key}") String rememberMeKey) {
-        this.userDetailsService = userDetailsService; //CustomUserDetailsService
-        this.rememberMeKey = rememberMeKey;
+    public AppSecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
 
-        httpSecurity.authorizeHttpRequests(
-                        auth -> auth
-                                //True by default?
-                                .requestMatchers("/", "/register", "/static/**").permitAll()
+
+        httpSecurity
+                .csrf(csrfConfigurer -> csrfConfigurer.disable())
+                .authorizeHttpRequests(auth -> auth
+                                //True by default
+                                .requestMatchers("/", "/register", "/static/**", "/login").permitAll()
                                 .requestMatchers("/debug/**").permitAll()
                                 .requestMatchers("/admin", "/tools").hasRole("ADMIN")
                                 .requestMatchers("/user").hasRole(UserRole.USER.name())
                                 .anyRequest().authenticated()
 
-
-                )
-                .formLogin(httpSecurityFormLoginConfigurer -> httpSecurityFormLoginConfigurer
-                        .loginPage("/login").permitAll()
-                        .loginProcessingUrl("/authenticate")
-                        .usernameParameter("username")
-                        .passwordParameter("password")
-                        .failureUrl("/login?error")
-                        .defaultSuccessUrl("/")//.false - default
-
-
-                )
-                .logout(logoutConfigurer -> logoutConfigurer
-                        .logoutUrl("/logout").permitAll()
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID", "remember-me")
-                        .logoutSuccessUrl("/login?logout")
+        )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                .rememberMe(rememberMeConfigurer -> rememberMeConfigurer
-                        .key(rememberMeKey)
-                        .rememberMeParameter("remember-me")
-                        .tokenValiditySeconds((int) TimeUnit.DAYS.toSeconds(24))
-                        .userDetailsService(userDetailsService)
-
-
-                );
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
 
         return httpSecurity.build();
