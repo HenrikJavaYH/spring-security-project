@@ -3,6 +3,7 @@ package org.henrikjavayh.springsecurity.security.jwt;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.henrikjavayh.springsecurity.user.CustomUserDetails;
+import org.henrikjavayh.springsecurity.user.dto.CustomUserLoginDTO;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,14 +36,15 @@ public class AuthenticationRestController {
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(
-            @RequestParam String username,
-            @RequestParam String password,
+            @RequestBody CustomUserLoginDTO customUserLoginDTO,
             HttpServletResponse response
     ) {
-        logger.debug("Attempting authentication for user {} ", username);
+        logger.debug("Attempting authentication for user {} ", customUserLoginDTO.username());
 
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password)
+                new UsernamePasswordAuthenticationToken(
+                        customUserLoginDTO.username(),
+                        customUserLoginDTO.password())
         );
 
         System.out.println("\n---------AUTHENTICATION RESULT--------");
@@ -77,10 +80,10 @@ public class AuthenticationRestController {
         cookie.setHttpOnly(true);
         cookie.setMaxAge(3600);
 
-        logger.info("Authentication successful for user {}", username);
+        logger.info("Authentication successful for user {}", customUserLoginDTO.username());
 
         return ResponseEntity.ok(Map.of(
-                "username", username,
+                "username", customUserLoginDTO.username(),
                 "authorities", customUserDetails.getAuthorities(),
                 "token", token
                 ));
