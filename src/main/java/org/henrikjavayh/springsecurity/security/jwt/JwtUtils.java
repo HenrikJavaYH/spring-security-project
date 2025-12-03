@@ -21,7 +21,7 @@ public class JwtUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
-    private final String base64EncodedSecretKey = "finland";
+    private final String base64EncodedSecretKey = "";
     private final byte[] keyBytes = Base64.getDecoder().decode(base64EncodedSecretKey);
     private final SecretKey secretKey = Keys.hmacShaKeyFor(keyBytes);
 

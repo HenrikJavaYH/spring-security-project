@@ -2,11 +2,13 @@ package org.henrikjavayh.springsecurity.security.jwt;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.henrikjavayh.springsecurity.config.RabbitConfig;
 import org.henrikjavayh.springsecurity.user.CustomUserDetails;
 import org.henrikjavayh.springsecurity.user.dto.CustomUserLoginDTO;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,11 +29,13 @@ public class AuthenticationRestController {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final JwtUtils jwtUtils;
     private final AuthenticationManager authenticationManager;
+    private final AmqpTemplate amqpTemplate;
 
     @Autowired
-    public AuthenticationRestController(JwtUtils jwtUtils, AuthenticationManager authenticationManager) {
+    public AuthenticationRestController(JwtUtils jwtUtils, AuthenticationManager authenticationManager, AmqpTemplate amqpTemplate) {
         this.jwtUtils = jwtUtils;
         this.authenticationManager = authenticationManager;
+        this.amqpTemplate = amqpTemplate;
     }
 
     @PostMapping("/login")
@@ -76,11 +80,18 @@ public class AuthenticationRestController {
         Cookie cookie = new Cookie("token", token);//Måste namn matcha
         cookie.setPath("/");
         response.addCookie(cookie);
+        cookie.setAttribute("SameSite", "Lax");
         cookie.setSecure(true);
         cookie.setHttpOnly(true);
         cookie.setMaxAge(3600);
 
         logger.info("Authentication successful for user {}", customUserLoginDTO.username());
+
+        amqpTemplate.convertAndSend(
+                RabbitConfig.EXCHANGE_NAME,
+                RabbitConfig.ROUTING_KEY,
+                "User logged in, todo: Send email to alert them"
+        );
 
         return ResponseEntity.ok(Map.of(
                 "username", customUserLoginDTO.username(),

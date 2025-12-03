@@ -1,9 +1,11 @@
 package org.henrikjavayh.springsecurity;
 
 import org.henrikjavayh.springsecurity.user.autthority.UserRole;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+@EnableRabbit
 @SpringBootApplication
 public class SpringSecurityApplication {
 
