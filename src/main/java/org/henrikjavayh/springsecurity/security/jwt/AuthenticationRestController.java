@@ -83,7 +83,7 @@ public class AuthenticationRestController {
         cookie.setAttribute("SameSite", "Lax");
         cookie.setSecure(true);
         cookie.setHttpOnly(true);
-        cookie.setMaxAge(3600);
+        cookie.setMaxAge(86400);
 
         logger.info("Authentication successful for user {}", customUserLoginDTO.username());
 

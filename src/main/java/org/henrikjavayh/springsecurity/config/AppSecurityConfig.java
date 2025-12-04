@@ -42,6 +42,7 @@ public class AppSecurityConfig {
                                 .requestMatchers("/", "/register", "/static/**", "/login").permitAll()
                                 .requestMatchers("/debug/**").permitAll()
                                 .requestMatchers("/admin", "/tools").hasRole("ADMIN")
+                                .requestMatchers("/todos/**").hasAnyRole("USER", "ADMIN")
                                 .requestMatchers("/user").hasRole(UserRole.USER.name())
                                 .anyRequest().authenticated()
 

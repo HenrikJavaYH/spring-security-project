@@ -21,11 +21,11 @@ public class JwtUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
-    private final String base64EncodedSecretKey = "";
+    private final String base64EncodedSecretKey = "finland";
     private final byte[] keyBytes = Base64.getDecoder().decode(base64EncodedSecretKey);
     private final SecretKey secretKey = Keys.hmacShaKeyFor(keyBytes);
 
-    private final int jwtExpirationMs = (int) TimeUnit.HOURS.toMillis(1);
+    private final int jwtExpirationMs = (int) TimeUnit.HOURS.toMillis(24);
 
     public String generateJwtToken(CustomUser customUser) {
         logger.debug("generate Jwt for user: {} with roles: {}", customUser.getUsername(), customUser.getRoles());
