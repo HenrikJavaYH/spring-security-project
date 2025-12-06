@@ -60,7 +60,7 @@ public class CustomUser {
         return password;
     }
 
-    public void setPassword(String password, PasswordEncoder  passwordEncoder) {
+    public void setPassword(String password, PasswordEncoder passwordEncoder) {
         this.password = passwordEncoder.encode(password);
     }
 
@@ -103,4 +103,6 @@ public class CustomUser {
     public void setRoles(Set<UserRole> roles) {
         this.roles = roles;
     }
+
+
 }

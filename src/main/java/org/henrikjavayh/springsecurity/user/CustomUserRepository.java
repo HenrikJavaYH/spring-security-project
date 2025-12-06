@@ -9,6 +9,8 @@ public interface CustomUserRepository extends JpaRepository<CustomUser, UUID> {
 
     Optional<CustomUser> findByUsername(String username);
 
+    boolean existsByUsername(String username);
+
 
 
 }

@@ -16,10 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -37,6 +34,23 @@ public class AuthenticationRestController {
         this.authenticationManager = authenticationManager;
         this.amqpTemplate = amqpTemplate;
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> me(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(
+                    Map.of("error", "Not authenticated")
+            );
+        }
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "username", authentication.getName(),
+                        "roles", authentication.getAuthorities()
+                )
+        );
+    }
+
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(
