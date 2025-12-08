@@ -8,9 +8,11 @@ import org.henrikjavayh.springsecurity.user.dto.CustomUserCreationDTO;
 import org.henrikjavayh.springsecurity.user.mapper.CustomUserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -66,5 +68,21 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> me(Authentication auth) {
+        if (auth == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        CustomUser user = (CustomUser) auth.getPrincipal();
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "username", user.getUsername(),
+                        "roles", user.getRoles()
+                )
+        );
     }
 }

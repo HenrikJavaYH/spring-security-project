@@ -44,7 +44,10 @@ public class AppSecurityConfig {
                                 .requestMatchers("/admin", "/tools").hasRole("ADMIN")
                                 .requestMatchers("/todos/**").hasAnyRole("USER", "ADMIN")
                                 .requestMatchers("/user").hasRole(UserRole.USER.name())
-                                .anyRequest().authenticated()
+                                .requestMatchers("/api/auth/me").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("api/admin/**").hasAnyRole("ADMIN")
+
+                        .anyRequest().authenticated()
 
         )
                 .sessionManagement(session -> session
